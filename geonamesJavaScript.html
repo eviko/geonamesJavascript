@@ -1,0 +1,114 @@
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>Assignment itp15102</title>
+		<script type="text/Javascript">		
+		
+			function sendRequest(){
+			
+				document.getElementById("Select").innerHTML='';		// βάζει κενό στο dropdownlist
+				document.getElementById("weather").innerHTML=''; // αδειάζει τα στοιχεία tou element me id=weather ώστε να καταγραφούν τα επόμενα.
+				
+				ajax= new XMLHttpRequest();// create a XMLHTTPRequest object for all browsers apart from IE5 & IE6
+				var country= document.getElementById("countryName").value; // take the value of the text with id countryName
+				var url="http://api.geonames.org/countryInfoJSON?username=eviko";
+				ajax.open("GET",url,true); // παραμετροπόίηση με Get request και ασύγχρονο mode
+				ajax.send(); // send the request
+				ajax.onreadystatechange=function(){ //4 means request is finished
+					if (ajax.readyState==4){
+						if (ajax.status!=200){  // 200 means request is succeeded	
+							alert("Server response was different than expected!");
+							return;
+						 }
+						else {  			
+						
+							var data= JSON.parse(ajax.responseText);  	/*παίρνει το αποτέλεσμα του XMLHTTPRequest μέσω responseΤΕΧΤ 
+																			χρησιμοποιώντας JSON.parse για να επιστρέψει objects και το αποθηκεύει στο data	*/										
+							geonamesList=data.geonames; // ο πίνακας με τα objects tou geonames
+							var len=data.geonames.length;				
+							
+							if(countryName.value.length >=3){
+		 
+								var x = document.getElementById("Select");  //πηγαίνει στο DOM και βρίσκει το element me id=selected
+								var option = document.createElement("OPTION"); // δημιουργεί έναι καινούργιο element το option
+								var textNode=document.createTextNode('Select Country'); // δημιουργεί ένα καινούργιο textnode και του δίνει τιμή Select Country
+								option.appendChild(textNode); //πάει και βάζει το textNode κάτω από το option
+								x.appendChild(option);	//πάει και βάζει το option κάτω από το select
+								
+								var count=0;
+								for(i=0;i<len;i++){									
+															
+										var countryNameUpper = countryName.value.toUpperCase(); //μετατρέπει την τιμή του text σε κεφαλαία
+										var str=geonamesList[i].countryName; 
+										var geonamesListUpper= str.toUpperCase();//μετατρέπει το countryName tou i object σε κεφαλαία
+										var capital=geonamesList[i].capital;
+										
+										if (geonamesListUpper.substring(0, countryNameUpper.length) === countryNameUpper) {
+												count++;
+												var x = document.getElementById("Select"); //πηγαίνει στο DOM και βρίσκει το element me id´selected.
+												var option = document.createElement("OPTION"); // δημιουργεί έναι καινούργιο element το option.
+												option.setAttribute("value",capital) //δίνει στο attribute value την τιμή του capital tou i object.
+												var textNode=document.createTextNode(str); // δημιουργεί ένα καινούργιο textnode και του δίνει την τιμή του countryName tou i object
+												option.appendChild(textNode); //πάει και βάζει το textNode κάτω από το option
+												x.appendChild(option);		//πάει και βάζει το option κάτω από το select			
+										}														
+								}
+							}
+	
+							if (count==0){
+										alert("Η χώρα "+ countryName.value + " δε βρέθηκε");
+										document.getElementById("countryName").value=''; // βάζει κενό στο κείμενο του textbox.
+				                        document.getElementById("Select").innerHTML='';		// βάζει κενό στο dropdpwnlist
+										return;						
+							}
+						}
+					}
+				}
+			}	
+			function CapitalWeather(){
+	
+				var selected=document.getElementById("Select").value;	
+				xml= new XMLHttpRequest();// create a XMLHTTPRequest object for all browsers apart from IE5 & IE6		
+				var url="http://api.openweathermap.org/data/2.5/weather?q=" + selected + "&mode=xml&appid=610b1a6b49153e2fa45051c8ce56a2ba";
+				xml.open("GET",url,true); // παραμετροπόίηση με Get request και ασύγχρονο mode
+				xml.send(); // send the request
+				xml.onreadystatechange=function(){					//καθε φορά που το TCP ενημερώνει οτι άλλαξε το readyState τότε καλεί τη function
+					if (xml.readyState==4){ //4 means request is finished
+						if (xml.status!=200){  // 200 means request is succeeded	
+							alert("Server response was different than expected!");
+							return;
+						 }
+						else { 					
+							var data= xml.responseXML;  //το αποτέλεσμα του response σε DOM Document
+							var div=document.getElementById("weather");									
+						
+							var temperature = data.getElementsByTagName("temperature")[0].getAttribute("value");//πάει στο πρώτο στοιχείο του πίνακα με TagName=temperature και παίρνει το attribute value			
+							var humidity = data.getElementsByTagName("humidity")[0].getAttribute("value");//πάει στο πρώτο στοιχείο του πίνακα με TagName=humidity και παίρνει το attribute value			
+							var pressure = data.getElementsByTagName("pressure")[0].getAttribute("value");//πάει στο πρώτο στοιχείο του πίνακα με TagName=pressure και παίρνει το attribute value	
+							var speed = data.getElementsByTagName("wind")[0].childNodes[0].getAttribute("value");//πάει στο πρώτο στοιχείο του πίνακα με TagName=wind,πάει στο πρώτο childNode και παίρνει το attribute value	
+							var direction = data.getElementsByTagName("wind")[0].childNodes[2].getAttribute("name");//πάει στο πρώτο στοιχείο του πίνακα με TagName=wind,πάει στο τρίτο childNode και παίρνει το attribute name				
+
+							
+								 div.innerHTML ="<H1>"+selected + " has</h1><b>Temperature: "+ (temperature -273.15).toFixed(1) 
+								 
+								 +  " °C<br>Humidity: " + humidity + " %<br>Pressure: " + pressure + " hPa<br>Wind speed: "+ speed +
+								 " mps<br> Wind directon: " + direction;  
+								 if( document.getElementById("Select").selectedIndex =="0"){ //εάν επιλεγεί το πρώτο option βάζει κενό στο element me id=weather
+									document.getElementById("weather").innerHTML='';									
+									}
+						}
+					}				
+			    }
+			}
+		</script>
+			
+	</head>
+	<body>
+		<h1>Write a country at the textbox.</h1>
+		<input type="text" id="countryName" onkeyup="return sendRequest();">
+		<select id="Select"  onchange="return CapitalWeather()"></select>
+		<div id="weather"></div>
+			
+	</body>
+</html>
